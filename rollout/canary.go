@@ -115,6 +115,19 @@ func (c *rolloutContext) reconcileCanaryStableReplicaSet() (bool, error) {
 		// a *susbsequent*, follow-up reconciliation, lagging behind the setWeight and service switch.
 		_, desiredStableRSReplicaCount = replicasetutil.CalculateReplicaCountsForTrafficRoutedCanary(c.rollout, c.rollout.Status.Canary.Weights)
 	}
+
+	isScalingEvent, err := c.isScalingEvent()
+	if err != nil {
+		c.log.Infof("DEP-2595 reconcileCanaryStableReplicaSet isScalingEvent error: %v", err)
+	}
+	c.log.Infof("DEP-2595 reconcileCanaryStableReplicaSet isScalingEvent: %t", isScalingEvent)
+	c.log.Infof("DEP-2595 reconcileCanaryStableReplicaSet desiredStableRSReplicaCount: %d", desiredStableRSReplicaCount)
+	if c.newStatus.Canary.Weights != nil && c.newStatus.Canary.Weights.Verified != nil {
+		c.log.Infof("DEP-2595 reconcileCanaryStableReplicaSet c.newStatus.Canary.Weights.Verified: %t", *c.newStatus.Canary.Weights.Verified)
+	} else {
+		c.log.Infof("DEP-2595 reconcileCanaryStableReplicaSet c.newStatus.Canary.Weights.Verified parent is nil.")
+	}
+
 	scaled, _, err := c.scaleReplicaSetAndRecordEvent(c.stableRS, desiredStableRSReplicaCount)
 	if err != nil {
 		return scaled, fmt.Errorf("failed to scaleReplicaSetAndRecordEvent in reconcileCanaryStableReplicaSet: %w", err)
@@ -214,6 +227,18 @@ func (c *rolloutContext) scaleDownOldReplicaSetsForCanary(oldRSs []*appsv1.Repli
 				// this ReplicaSet is likely the previous stable. We should do one of two things:
 				if c.rollout.Spec.Strategy.Canary.DynamicStableScale {
 					// 1. if we are using dynamic scaling, then this should be scaled down to 0 now
+
+					isScalingEvent, err := c.isScalingEvent()
+					if err != nil {
+						c.log.Infof("DEP-2595 scaleDownOldReplicaSetsForCanary isScalingEvent error: %v", err)
+					}
+					c.log.Infof("DEP-2595 scaleDownOldReplicaSetsForCanary isScalingEvent: %t", isScalingEvent)
+					if c.newStatus.Canary.Weights != nil && c.newStatus.Canary.Weights.Verified != nil {
+						c.log.Infof("DEP-2595 scaleDownOldReplicaSetsForCanary c.newStatus.Canary.Weights.Verified: %t", *c.newStatus.Canary.Weights.Verified)
+					} else {
+						c.log.Infof("DEP-2595 scaleDownOldReplicaSetsForCanary c.newStatus.Canary.Weights.Verified parent is nil.")
+					}
+
 					desiredReplicaCount = 0
 				} else {
 					// 2. otherwise, honor scaledown delay second and keep replicas of the current step
