@@ -116,17 +116,22 @@ func (c *rolloutContext) reconcileCanaryStableReplicaSet() (bool, error) {
 		_, desiredStableRSReplicaCount = replicasetutil.CalculateReplicaCountsForTrafficRoutedCanary(c.rollout, c.rollout.Status.Canary.Weights)
 	}
 
+
+	var canaryWeightsInfo string
+	if c.newStatus.Canary.Weights == nil {
+		canaryWeightsInfo = "c.newStatus.Canary.Weights is nil"
+	} else if c.newStatus.Canary.Weights.Verified == nil {
+		canaryWeightsInfo = "c.newStatus.Canary.Weights.Verified: nil"
+	} else {
+		canaryWeightsInfo = fmt.Sprintf("c.newStatus.Canary.Weights.Verified: %t", *c.newStatus.Canary.Weights.Verified)
+	}
+
 	isScalingEvent, err := c.isScalingEvent()
 	if err != nil {
 		c.log.Infof("DEP-2595 reconcileCanaryStableReplicaSet isScalingEvent error: %v", err)
 	}
-	c.log.Infof("DEP-2595 reconcileCanaryStableReplicaSet isScalingEvent: %t", isScalingEvent)
-	c.log.Infof("DEP-2595 reconcileCanaryStableReplicaSet desiredStableRSReplicaCount: %d", desiredStableRSReplicaCount)
-	if c.newStatus.Canary.Weights != nil && c.newStatus.Canary.Weights.Verified != nil {
-		c.log.Infof("DEP-2595 reconcileCanaryStableReplicaSet c.newStatus.Canary.Weights.Verified: %t", *c.newStatus.Canary.Weights.Verified)
-	} else {
-		c.log.Infof("DEP-2595 reconcileCanaryStableReplicaSet c.newStatus.Canary.Weights.Verified parent is nil.")
-	}
+
+	c.log.Infof("DEP-2595 reconcileCanaryStableReplicaSet desiredStableRSReplicaCount: %d, isScalingEvent: %t, %s", desiredStableRSReplicaCount, isScalingEvent, canaryWeightsInfo)
 
 	scaled, _, err := c.scaleReplicaSetAndRecordEvent(c.stableRS, desiredStableRSReplicaCount)
 	if err != nil {
