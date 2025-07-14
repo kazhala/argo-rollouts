@@ -29,7 +29,7 @@ const (
 	// DefaultScaleDownDelaySeconds default seconds before scaling down old replicaset after switching services
 	DefaultScaleDownDelaySeconds = int32(60)
 	// DefaultAbortScaleDownDelaySeconds default seconds before scaling down old replicaset after switching services
-	DefaultAbortScaleDownDelaySeconds = int32(60)
+	DefaultAbortScaleDownDelaySeconds = int32(300)
 	// DefaultAutoPromotionEnabled default value for auto promoting a blueGreen strategy
 	DefaultAutoPromotionEnabled = true
 	// DefaultConsecutiveErrorLimit is the default number times a metric can error in sequence before
